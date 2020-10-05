@@ -114,14 +114,17 @@ import static com.github.pwittchen.reactivenetwork.library.rx2.ReactiveNetwork.L
   protected void registerIdleReceiver(final Context context) {
     final IntentFilter filter = new IntentFilter(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED);
     context.registerReceiver(idleReceiver, filter);
+    Log.e("@@@", "MashmallowNetworkObservingStrategy#registerIdleReceiver");
   }
 
   @NonNull protected BroadcastReceiver createIdleBroadcastReceiver() {
     return new BroadcastReceiver() {
       @Override public void onReceive(final Context context, final Intent intent) {
         if (isIdleMode(context)) {
+          Log.e("@@@", "MashmallowNetworkObservingStrategy: isIdleMode is true");
           onNext(Connectivity.create());
         } else {
+          Log.e("@@@", "MashmallowNetworkObservingStrategy: isIdleMode is false");
           onNext(Connectivity.create(context));
         }
       }
@@ -132,12 +135,14 @@ import static com.github.pwittchen.reactivenetwork.library.rx2.ReactiveNetwork.L
     final String packageName = context.getPackageName();
     final PowerManager manager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
     boolean isIgnoringOptimizations = manager.isIgnoringBatteryOptimizations(packageName);
+    Log.e("@@@", String.format("MashmallowNetworkObservingStrategy: isIgnoringOptimizations is %b", isIgnoringOptimizations));
     return manager.isDeviceIdleMode() && !isIgnoringOptimizations;
   }
 
   protected void tryToUnregisterCallback(final ConnectivityManager manager) {
     try {
       manager.unregisterNetworkCallback(networkCallback);
+      Log.e("@@@", "MashmallowNetworkObservingStrategy: unregisterNetworkCallback");
     } catch (Exception exception) {
       onError(ERROR_MSG_NETWORK_CALLBACK, exception);
     }
@@ -146,6 +151,7 @@ import static com.github.pwittchen.reactivenetwork.library.rx2.ReactiveNetwork.L
   protected void tryToUnregisterReceiver(Context context) {
     try {
       context.unregisterReceiver(idleReceiver);
+      Log.e("@@@", "MashmallowNetworkObservingStrategy: unregisterReceiver");
     } catch (Exception exception) {
       onError(ERROR_MSG_RECEIVER, exception);
     }
@@ -158,16 +164,19 @@ import static com.github.pwittchen.reactivenetwork.library.rx2.ReactiveNetwork.L
   protected ConnectivityManager.NetworkCallback createNetworkCallback(final Context context) {
     return new ConnectivityManager.NetworkCallback() {
       @Override public void onAvailable(Network network) {
+        Log.e("@@@", String.format("MashmallowNetworkObservingStrategy#onAvailable: %s", network));
         onNext(Connectivity.create(context));
       }
 
       @Override public void onLost(Network network) {
+        Log.e("@@@", String.format("MashmallowNetworkObservingStrategy#onLost: %s", network));
         onNext(Connectivity.create(context));
       }
     };
   }
 
   protected void onNext(Connectivity connectivity) {
+    Log.e("@@@", String.format("MashmallowNetworkObservingStrategy#onNext: %s",connectivity));
     connectivitySubject.onNext(connectivity);
   }
 }
